@@ -1,4 +1,4 @@
 
-.angular/cache/
 backend/.env
 frontend/.env
+frontend/.angular
