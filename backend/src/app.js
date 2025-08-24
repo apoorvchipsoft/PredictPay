@@ -28,6 +28,9 @@ app.use("/api/payments", paymentRoutes);
 const reminderRoutes = require("./routes/reminder");
 app.use("/api/reminders", reminderRoutes);
 
+const dashboardRoutes = require("./routes/dashboard");
+app.use("/api/dashboard", dashboardRoutes);
+
 // Health check endpoint for MongoDB connection
 app.get("/api/db-status", (req, res) => {
   const state = mongoose.connection.readyState;
