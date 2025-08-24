@@ -27,42 +27,46 @@
   <!-- KPI Cards -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
     <app-kpi-card
-      label="Total Outstanding"
-      value="$183,700"
-      [icon]="dollarSignIcon"
+      label="Total Invoices"
+      [value]="
+        figures
+          ? rupeeSign + ' ' + figures.totalAmount.toLocaleString()
+          : 'Loading...'
+      "
+      [icon]="trendingUpIcon"
       variant="default"
-      [change]="5"
-      subtext="vs last month"
+      [change]="figures ? figures.totalInvoices : 0"
+      subtext="Total invoices in DB"
     >
     </app-kpi-card>
 
     <app-kpi-card
-      label="Receivables"
-      value="$142,500"
+      label="Paid Invoices"
+      [value]="figures ? figures.paidInvoices.toString() : 'Loading...'"
       [icon]="arrowUpRightIcon"
       variant="success"
-      [change]="12"
-      subtext="This month"
+      [change]="figures ? figures.paidInvoices : 0"
+      subtext="Paid invoices"
     >
     </app-kpi-card>
 
     <app-kpi-card
-      label="Payables"
-      value="$41,200"
+      label="Overdue Invoices"
+      [value]="figures ? figures.overdueInvoices.toString() : 'Loading...'"
       [icon]="arrowDownRightIcon"
       variant="warning"
-      [change]="-8"
-      subtext="Pending"
+      [change]="figures ? figures.overdueInvoices : 0"
+      subtext="Overdue invoices"
     >
     </app-kpi-card>
 
     <app-kpi-card
-      label="Cash Flow"
-      value="+$28,300"
+      label="Draft Invoices"
+      [value]="figures ? figures.draftInvoices.toString() : 'Loading...'"
       [icon]="trendingUpIcon"
       variant="success"
-      [change]="15"
-      subtext="Positive trend"
+      [change]="figures ? figures.draftInvoices : 0"
+      subtext="Draft invoices"
     >
     </app-kpi-card>
   </div>
@@ -117,26 +121,32 @@
         </div>
 
         <div class="space-y-4">
-          @for (payment of upcomingPayments; track payment.date) {
-          <div
-            class="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
-          >
-            <div>
-              <p class="font-medium">{{ payment.customer }}</p>
-              <p class="text-sm text-muted-foreground">
-                Due {{ payment.date }}
-              </p>
+          <ng-container *ngIf="upcomingPayments.length > 0; else noPayments">
+            <div
+              *ngFor="let payment of upcomingPayments"
+              class="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
+            >
+              <div>
+                <p class="font-medium">{{ payment.customer }}</p>
+                <p class="text-sm text-muted-foreground">
+                  Due {{ payment.dueDate | date : "mediumDate" }}
+                </p>
+              </div>
+              <div class="text-right">
+                <p class="font-bold">
+                  {{ rupeeSign + " " + payment.amount.toLocaleString() }}
+                </p>
+                <span [class]="getPaymentStatusClass(payment.status)">{{
+                  payment.status | titlecase
+                }}</span>
+              </div>
             </div>
-            <div class="text-right">
-              <p class="font-bold">
-                {{ "$" + payment.amount.toLocaleString() }}
-              </p>
-              <span [class]="getPaymentStatusClass(payment.status)">
-                {{ payment.status | titlecase }}
-              </span>
+          </ng-container>
+          <ng-template #noPayments>
+            <div class="text-muted-foreground text-center py-4">
+              No upcoming payments to show.
             </div>
-          </div>
-          }
+          </ng-template>
         </div>
 
         <div class="mt-6 pt-4 border-t border-border">
@@ -193,8 +203,7 @@
           </tr>
         </thead>
         <tbody class="bg-card divide-y divide-border">
-          @for (invoice of recentInvoices; track invoice.id) {
-          <tr class="hover:bg-muted/50">
+          <tr *ngFor="let invoice of recentInvoices">
             <td class="px-6 py-4 whitespace-nowrap font-medium">
               {{ invoice.id }}
             </td>
@@ -202,10 +211,10 @@
               {{ invoice.customer }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap font-bold">
-              {{ "$" + invoice.amount.toLocaleString() }}
+              {{ rupeeSign + " " + invoice.amount.toLocaleString() }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-muted-foreground">
-              {{ invoice.dueDate }}
+              {{ invoice.dueDate | date : "mediumDate" }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <span [class]="getInvoiceStatusClass(invoice.status)">
@@ -213,12 +222,16 @@
               </span>
             </td>
           </tr>
-          }
         </tbody>
       </table>
+      <div
+        *ngIf="recentInvoices.length === 0"
+        class="text-muted-foreground text-center py-4"
+      >
+        No recent invoices to show.
+      </div>
     </div>
   </div>
-
   <!-- Quick Actions -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     <div class="bg-card rounded-lg border border-border p-6 shadow-sm">

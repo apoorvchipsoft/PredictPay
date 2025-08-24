@@ -1,4 +1,4 @@
-import { Component } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import {
   LucideAngularModule,
@@ -13,6 +13,18 @@ import {
   Filter,
 } from "lucide-angular";
 import { KpiCardComponent } from "../../components/kpi-card/kpi-card.component";
+import {
+  RecentInvoicesService,
+  RecentInvoice,
+} from "../../services/recent-invoices.service";
+import {
+  UpcomingPaymentsService,
+  UpcomingPayment,
+} from "../../services/upcoming-payments.service";
+import {
+  DashboardDataService,
+  DashboardFigures,
+} from "../../services/dashboard-data.service";
 
 interface Invoice {
   id: string;
@@ -35,9 +47,9 @@ interface Payment {
   imports: [CommonModule, LucideAngularModule, KpiCardComponent],
   templateUrl: "./dashboard.component.html",
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   // Icons
-  dollarSignIcon = DollarSign;
+  rupeeSign = "₹";
   creditCardIcon = CreditCard;
   trendingUpIcon = TrendingUp;
   usersIcon = Users;
@@ -47,71 +59,27 @@ export class DashboardComponent {
   fileTextIcon = FileText;
   filterIcon = Filter;
 
-  upcomingPayments: Payment[] = [
-    { date: "Aug 25", amount: 12500, customer: "Acme Corp", status: "pending" },
-    {
-      date: "Aug 28",
-      amount: 8900,
-      customer: "Design Studio",
-      status: "pending",
-    },
-    {
-      date: "Sep 2",
-      amount: 15600,
-      customer: "Tech Solutions",
-      status: "pending",
-    },
-    {
-      date: "Sep 5",
-      amount: 7300,
-      customer: "Marketing Inc",
-      status: "completed",
-    },
-    {
-      date: "Sep 8",
-      amount: 19200,
-      customer: "Creative Agency",
-      status: "pending",
-    },
-  ];
+  figures: DashboardFigures | null = null;
+  recentInvoices: RecentInvoice[] = [];
+  upcomingPayments: UpcomingPayment[] = [];
 
-  recentInvoices: Invoice[] = [
-    {
-      id: "INV-2025-001",
-      customer: "Acme Corp",
-      amount: 12500,
-      dueDate: "2025-08-30",
-      status: "paid",
-    },
-    {
-      id: "INV-2025-002",
-      customer: "Tech Solutions Ltd",
-      amount: 24500,
-      dueDate: "2025-08-20",
-      status: "overdue",
-    },
-    {
-      id: "INV-2025-003",
-      customer: "Design Studio Co",
-      amount: 8900,
-      dueDate: "2025-08-28",
-      status: "pending",
-    },
-    {
-      id: "INV-2025-004",
-      customer: "Marketing Inc",
-      amount: 5600,
-      dueDate: "2025-09-05",
-      status: "pending",
-    },
-    {
-      id: "INV-2025-005",
-      customer: "Startup Innovations",
-      amount: 18900,
-      dueDate: "2025-09-12",
-      status: "pending",
-    },
-  ];
+  constructor(
+    private dashboardDataService: DashboardDataService,
+    private recentInvoicesService: RecentInvoicesService,
+    private upcomingPaymentsService: UpcomingPaymentsService
+  ) {}
+
+  ngOnInit() {
+    this.dashboardDataService.getDashboardFigures().subscribe((data) => {
+      this.figures = data;
+    });
+    this.recentInvoicesService.getRecentInvoices().subscribe((data) => {
+      this.recentInvoices = data;
+    });
+    this.upcomingPaymentsService.getUpcomingPayments().subscribe((data) => {
+      this.upcomingPayments = data;
+    });
+  }
 
   getPaymentStatusClass(status: string): string {
     const baseClass =
